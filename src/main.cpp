@@ -92,6 +92,12 @@ int main() {
 		time1 = time2;
 
 		//update Net Accelerations
+
+		for(int i=0; i<N; i++) { //ERROR FIXED
+			planets[i].Xacc=0;
+			planets[i].Yacc=0;
+		}
+
 		for(int i=0; i<N; i++) {
 			for(int j=i+1; j<N ; j++) {
 
