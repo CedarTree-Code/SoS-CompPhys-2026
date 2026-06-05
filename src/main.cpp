@@ -5,24 +5,24 @@ using namespace sf;
 
 struct Planet {
 
-	float Xpos, Ypos, Xvel, Yvel, Xacc, Yacc, size;
+	float Xpos, Ypos, prevXpos, prevYpos, Xvel, Yvel, Xacc, Yacc, size;
 	Color colour;
 	double mass;
 	CircleShape shape;
 
 	Planet() {
-		Xpos = Ypos = Xvel = Yvel = Xacc = Yacc = size = 0.f; 
+		Xpos = Ypos = prevXpos = prevYpos = Xacc = Yacc = size = 0.f; 
 		colour = Color::White; 
 		mass = 0.0;
 		shapeSetup();
 	}
 
-	Planet(float xpos, float ypos, float xvel, float yvel, float xacc, float yacc, float S, Color C, double Mass) {
+	Planet(float xpos, float ypos, float xacc, float yacc, float S, Color C, double Mass) {
 		Xpos = xpos; Ypos = ypos; //initial position
-		Xvel = xvel; Yvel = yvel; //initial velocity
 		Xacc = xacc; Yacc = yacc; //initial acceleration
 		mass = Mass;
 		size = S; colour = C;
+		prevXpos = xpos; prevYpos = ypos;
 		shapeSetup(); //setup Planet shape for display
 	}
 
@@ -33,11 +33,14 @@ struct Planet {
 		shape.setFillColor(colour);
 	}
 
-	void updatePositionVelocity(float dt) {
-		Xvel += Xacc * dt; 
-		Yvel += Yacc * dt;
-		Xpos += Xvel * dt;
-		Ypos += Yvel * dt;
+	void updatePositions(float dt) {
+		//Verlet integration//
+		float Xtemp = Xpos, Ytemp = Ypos;
+		Xpos = 2*Xpos - prevXpos + Xacc*dt*dt; //O(t^4) error
+		Ypos = 2*Ypos - prevYpos + Yacc*dt*dt;
+		Xvel = (Xpos - prevXpos)/2*dt; //O(t^2) error
+		Yvel = (Ypos - prevYpos)/2*dt;
+		prevXpos = Xtemp; prevYpos = Ytemp;
 	}
 
 };
@@ -52,12 +55,14 @@ int main() {
 	float width = window.getSize().x;
 	float height = window.getSize().y;
 
-	int N=3;
-	Planet earth(width/2, height/2, 0, -25, 0, 0, 100, Color::Blue, 4000);
-	Planet moon(width/2 - 300, height/2, 0, 500, 0, 0, 20, Color::White, 250);
-	Planet rock(width/2, height/2 - 500, -500, 0, 0, 0, 70, Color::Cyan, 100);
-	
-	Planet planets[N] = {earth, moon, rock}; 
+	int N=2;
+	Planet earth(width/2, height/2, 0, 0, 100, Color::Blue, 2000);
+	Planet moon(width/2 - 400, height/2, 0, 0, 20, Color::White, 250);
+	earth.prevYpos = height/2 + 0.25;
+	moon.prevYpos = height/2 - 2;
+	//Planet rock(width/2, height/2 - 500, 0, 0, 70, Color::Cyan, 100);
+
+	Planet planets[N] = {earth, moon}; 
 
 	double G = 10000.0, dx, dy, dist, force, angle;
 
@@ -92,12 +97,11 @@ int main() {
 		time1 = time2;
 
 		//update Net Accelerations
-
-		for(int i=0; i<N; i++) { //ERROR FIXED
+		for(int i=0; i<N; i++) {
 			planets[i].Xacc=0;
 			planets[i].Yacc=0;
 		}
-
+		
 		for(int i=0; i<N; i++) {
 			for(int j=i+1; j<N ; j++) {
 
@@ -116,7 +120,7 @@ int main() {
 			}
 		}
 
-		for(int i=0; i<N; i++) planets[i].updatePositionVelocity(Dtime.asSeconds());
+		for(int i=0; i<N; i++) planets[i].updatePositions(Dtime.asSeconds());
 
 		window.display();
 
