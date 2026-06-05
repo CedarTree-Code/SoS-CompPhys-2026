@@ -14,9 +14,7 @@ struct Planet {
 		Xpos = Ypos = Xvel = Yvel = Xacc = Yacc = size = 0.f; 
 		colour = Color::White; 
 		mass = 0.0;
-		shape.setRadius(size);
-		shape.setOrigin({size, size});
-		shape.setFillColor(colour);
+		shapeSetup();
 	}
 
 	Planet(float xpos, float ypos, float xvel, float yvel, float xacc, float yacc, float S, Color C, double Mass) {
@@ -25,8 +23,11 @@ struct Planet {
 		Xacc = xacc; Yacc = yacc; //initial acceleration
 		mass = Mass;
 		size = S; colour = C;
+		shapeSetup(); //setup Planet shape for display
+	}
 
-		//setup Planet shape for display
+
+	void shapeSetup(){
 		shape.setRadius(size);
 		shape.setOrigin({size, size});
 		shape.setFillColor(colour);
@@ -45,14 +46,18 @@ int main() {
 
 	//----SETUP----//
 
-	//RenderWindow window(VideoMode::getDesktopMode(), "Basic 2-body system", State::Fullscreen);
-	RenderWindow window(VideoMode({1600, 900}), "Basic 2-body system");
+	//RenderWindow window(VideoMode::getDesktopMode(), "Basic N-body system", State::Fullscreen);
+	RenderWindow window(VideoMode({1600, 900}), "Basic N-body system");
 	window.setFramerateLimit(60);
 	float width = window.getSize().x;
 	float height = window.getSize().y;
 
-	Planet earth(width/2, height/2, 0, -25, 0, 0, 100, Color::Blue, 2000);
-	Planet moon(width/2 - 300, height/2, 0, 200, 0, 0, 20, Color::White, 250);
+	int N=3;
+	Planet earth(width/2, height/2, 0, -25, 0, 0, 100, Color::Blue, 4000);
+	Planet moon(width/2 - 300, height/2, 0, 500, 0, 0, 20, Color::White, 250);
+	Planet rock(width/2, height/2 - 500, -500, 0, 0, 0, 70, Color::Cyan, 100);
+	
+	Planet planets[N] = {earth, moon, rock}; 
 
 	double G = 10000.0, dx, dy, dist, force, angle;
 
@@ -76,31 +81,36 @@ int main() {
 		window.clear(Color::Black); 
 
 		//draw shapes
-		earth.shape.setPosition({earth.Xpos, earth.Ypos});
-		moon.shape.setPosition({moon.Xpos, moon.Ypos});
-		window.draw(earth.shape); 
-		window.draw(moon.shape);
+		for(int i=0; i<N; i++) {
+			planets[i].shape.setPosition({planets[i].Xpos, planets[i].Ypos});
+			window.draw(planets[i].shape); 
+		}
 
-		//update time and object
+		//update time and objects
 		time2 = clock.getElapsedTime();
 		Dtime = time2-time1;
 		time1 = time2;
 
-		//~~GRAVITY~~//
-		dx = earth.Xpos - moon.Xpos; dy = earth.Ypos - moon.Ypos;
-		dist = std::sqrt(dx*dx + dy*dy);
-		force = (G*earth.mass*moon.mass)/(dist*dist); //F = Gm1m2/r^2
-		if (force > 300000) force = 300000;
-		angle = std::atan2(dy, dx);
+		//update Net Accelerations
+		for(int i=0; i<N; i++) {
+			for(int j=i+1; j<N ; j++) {
 
-		//update Accelerations
-		earth.Xacc = -force*std::cos(angle)/earth.mass;
-		earth.Yacc = -force*std::sin(angle)/earth.mass;
-		moon.Xacc = force*std::cos(angle)/moon.mass;
-		moon.Yacc = force*std::sin(angle)/moon.mass;
+				//~~GRAVITY~~//
+				dx = planets[i].Xpos - planets[j].Xpos; dy = planets[i].Ypos - planets[j].Ypos;
+				dist = std::sqrt(dx*dx + dy*dy);
+				force = (G*planets[i].mass*planets[j].mass)/(dist*dist); //F = Gm1m2/r^2
+				if (force > 300000) force = 300000;
+				angle = std::atan2(dy, dx);
+				
+				planets[i].Xacc += -force*std::cos(angle)/planets[i].mass;
+				planets[i].Yacc += -force*std::sin(angle)/planets[i].mass;
+				planets[j].Xacc += force*std::cos(angle)/planets[j].mass;
+				planets[j].Yacc += force*std::sin(angle)/planets[j].mass;
 
-		earth.updatePositionVelocity(Dtime.asSeconds());
-		moon.updatePositionVelocity(Dtime.asSeconds());
+			}
+		}
+
+		for(int i=0; i<N; i++) planets[i].updatePositionVelocity(Dtime.asSeconds());
 
 		window.display();
 
