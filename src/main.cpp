@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cmath>
+#include <matplot/matplot.h>
 using namespace sf;
 
 struct Planet {
@@ -57,19 +58,23 @@ int main() {
 	float width = window.getSize().x;
 	float height = window.getSize().y;
 
-	int N=2;
+	int N=3;
 	Planet earth(width/2, height/2, 0, 0, 100, Color::Blue, 2000);
-	Planet moon(width/2 - 400, height/2, 0, 0, 20, Color::White, 250);
-	earth.prevpos = Vector2f (width/2, height/2 + 0.25);
-	moon.prevpos = Vector2f (width/2 - 400, height/2 - 2);
-	//Planet rock(width/2, height/2 - 500, 0, 0, 70, Color::Cyan, 100);
+	Planet moon(width/2 - 400, height/2, 0, 0, 30, Color::White, 250);
+	Planet rock(width/2 - 60, height/2 - 200, 0, 0, 10, Color::Cyan, 100);
+	earth.prevpos = earth.pos + Vector2f (0, 0.25);
+	moon.prevpos = moon.pos + Vector2f (0, -2);
+	rock.prevpos = rock.pos + Vector2f (5, 0);
 
-	Planet planets[N] = {earth, moon}; 
+	Planet planets[N] = {earth, moon, rock}; 
 
 	float G = 10000.0, dist;
 	Vector2f dpos, force;
 
-	float Dtime = 1./120; //1./fps
+	float Dtime = 1./80; //1./fps
+
+	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy;
+	double KE, PE;
 	
 	while(window.isOpen()) {
 
@@ -98,6 +103,8 @@ int main() {
 			planets[i].acc.x = 0;
 			planets[i].acc.y = 0;
 		}
+
+		PE = 0, KE = 0;
 		
 		for(int i=0; i<N; i++) {
 			for(int j=i+1; j<N ; j++) {
@@ -107,6 +114,7 @@ int main() {
 				dist = dpos.length();
 				force = ((G*planets[i].mass*planets[j].mass)/(dist*dist*dist)) * dpos; //F = Gm1m2/r^2
 				if (force.length() > 300000.f) force = 300000.f * force.normalized();
+				PE += -(G*planets[i].mass*planets[j].mass)/dist; // -Gm1m2/r
 				
 				planets[i].acc += -force/planets[i].mass;
 				planets[j].acc += force/planets[j].mass;
@@ -114,12 +122,28 @@ int main() {
 			}
 		}
 
-		for(int i=0; i<N; i++) planets[i].updatePositions(Dtime);
+		for(int i=0; i<N; i++) {
+			planets[i].updatePositions(Dtime);
+			KE += 0.5*planets[i].mass*planets[i].vel.lengthSquared();
+		}
+
+		PotentialEnergy.push_back(PE);
+		KineticEnergy.push_back(KE);
+		TotalEnergy.push_back(KE+PE);
 
 		window.display();
 
 	}
 
-	std::cout << "Window closed!" << std::endl;
+	std::cout << "Simulation Ended! - Energy Plot" << std::endl;
+
+	{ 
+		using namespace matplot;
+		plot(PotentialEnergy, "--xr");
+		hold(on);
+		plot(KineticEnergy, "--xgs");
+		plot(TotalEnergy, "--:ks");
+		show();
+	}
 
 }
