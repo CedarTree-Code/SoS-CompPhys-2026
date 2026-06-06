@@ -5,24 +5,23 @@ using namespace sf;
 
 struct Planet {
 
-	float Xpos, Ypos, prevXpos, prevYpos, Xvel, Yvel, Xacc, Yacc, size;
+	Vector2f pos, prevpos, vel, acc; 
+	float size, mass;
 	Color colour;
-	double mass;
 	CircleShape shape;
 
 	Planet() {
-		Xpos = Ypos = prevXpos = prevYpos = Xacc = Yacc = size = 0.f; 
+		pos.x = pos.y = prevpos.x = prevpos.y = acc.x = acc.y = size = mass = 0; 
 		colour = Color::White; 
-		mass = 0.0;
 		shapeSetup();
 	}
 
-	Planet(float xpos, float ypos, float xacc, float yacc, float S, Color C, double Mass) {
-		Xpos = xpos; Ypos = ypos; //initial position
-		Xacc = xacc; Yacc = yacc; //initial acceleration
+	Planet(float PosX, float PosY, float AccX, float AccY, float S, Color C, float Mass) {
+		pos.x = PosX; pos.y = PosY; //initial position
+		acc.x = AccX; acc.y = AccY; //initial acceleration
 		mass = Mass;
 		size = S; colour = C;
-		prevXpos = xpos; prevYpos = ypos;
+		prevpos = pos;
 		shapeSetup(); //setup Planet shape for display
 	}
 
@@ -35,13 +34,16 @@ struct Planet {
 
 	void updatePositions(float dt) {
 		//Verlet integration//
-		float Xtemp = Xpos, Ytemp = Ypos;
-		Xpos = 2*Xpos - prevXpos + Xacc*dt*dt; //O(t^4) error
-		Ypos = 2*Ypos - prevYpos + Yacc*dt*dt;
-		Xvel = (Xpos - prevXpos)/2*dt; //O(t^2) error
-		Yvel = (Ypos - prevYpos)/2*dt;
-		prevXpos = Xtemp; prevYpos = Ytemp;
+		Vector2f temp = pos;
+		pos = 2.f*pos - prevpos + acc*dt*dt; //O(t^4) error
+		vel = (pos - prevpos)/(2*dt); //O(t^2) error
+		prevpos = temp;
 	}
+
+};
+
+class Universe {
+	public:
 
 };
 
@@ -58,16 +60,16 @@ int main() {
 	int N=2;
 	Planet earth(width/2, height/2, 0, 0, 100, Color::Blue, 2000);
 	Planet moon(width/2 - 400, height/2, 0, 0, 20, Color::White, 250);
-	earth.prevYpos = height/2 + 0.25;
-	moon.prevYpos = height/2 - 2;
+	earth.prevpos = Vector2f (width/2, height/2 + 0.25);
+	moon.prevpos = Vector2f (width/2 - 400, height/2 - 2);
 	//Planet rock(width/2, height/2 - 500, 0, 0, 70, Color::Cyan, 100);
 
 	Planet planets[N] = {earth, moon}; 
 
-	double G = 10000.0, dx, dy, dist, force, angle;
+	float G = 10000.0, dist;
+	Vector2f dpos, force;
 
-	Clock clock; //start timing
-	Time time1 = clock.getElapsedTime(), time2, Dtime; 	//Dtime is (Delta) change in time
+	float Dtime = 1./120; //1./fps
 	
 	while(window.isOpen()) {
 
@@ -87,40 +89,32 @@ int main() {
 
 		//draw shapes
 		for(int i=0; i<N; i++) {
-			planets[i].shape.setPosition({planets[i].Xpos, planets[i].Ypos});
+			planets[i].shape.setPosition({planets[i].pos.x, planets[i].pos.y});
 			window.draw(planets[i].shape); 
 		}
 
-		//update time and objects
-		time2 = clock.getElapsedTime();
-		Dtime = time2-time1;
-		time1 = time2;
-
 		//update Net Accelerations
 		for(int i=0; i<N; i++) {
-			planets[i].Xacc=0;
-			planets[i].Yacc=0;
+			planets[i].acc.x = 0;
+			planets[i].acc.y = 0;
 		}
 		
 		for(int i=0; i<N; i++) {
 			for(int j=i+1; j<N ; j++) {
 
 				//~~GRAVITY~~//
-				dx = planets[i].Xpos - planets[j].Xpos; dy = planets[i].Ypos - planets[j].Ypos;
-				dist = std::sqrt(dx*dx + dy*dy);
-				force = (G*planets[i].mass*planets[j].mass)/(dist*dist); //F = Gm1m2/r^2
-				if (force > 300000) force = 300000;
-				angle = std::atan2(dy, dx);
+				dpos = planets[i].pos - planets[j].pos;
+				dist = dpos.length();
+				force = ((G*planets[i].mass*planets[j].mass)/(dist*dist*dist)) * dpos; //F = Gm1m2/r^2
+				if (force.length() > 300000.f) force = 300000.f * force.normalized();
 				
-				planets[i].Xacc += -force*std::cos(angle)/planets[i].mass;
-				planets[i].Yacc += -force*std::sin(angle)/planets[i].mass;
-				planets[j].Xacc += force*std::cos(angle)/planets[j].mass;
-				planets[j].Yacc += force*std::sin(angle)/planets[j].mass;
+				planets[i].acc += -force/planets[i].mass;
+				planets[j].acc += force/planets[j].mass;
 
 			}
 		}
 
-		for(int i=0; i<N; i++) planets[i].updatePositions(Dtime.asSeconds());
+		for(int i=0; i<N; i++) planets[i].updatePositions(Dtime);
 
 		window.display();
 
