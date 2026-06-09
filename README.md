@@ -3,7 +3,6 @@
 Done->
 Using Verlet Integration for timestepping, Looping over arrays of objects and plotting KE, PE and TE after the end of simulation to check accuracy
 
-WIP->
 Universe class to update all objects using one function, instead of going one function at a time
 
 # Resources/code for Cmake SFML and Matplot++ taken from

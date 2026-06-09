@@ -170,30 +170,24 @@ class Universe {
 };
 
 int main() {
+	//---INITIALISATION---//
 
-	// int N=3;
 	// Planet earth(H_SIZE/2, V_SIZE/2, 100, Color::Blue, 2000);
 	// Planet moon(H_SIZE/2 - 400, V_SIZE/2, 30, Color::White, 250);
 	// // Planet rock(H_SIZE/2 - 60, V_SIZE/2 - 200, 10, Color::Cyan, 100);
 	// earth.initialNudge(0, 0.25);
 	// moon.initialNudge(0, -2);
 	// // rock.initialNudge(5, 0);
-	// Planet planets[2] = {earth, moon}; 
-
-	// Universe universe (2, planets, N);
+	// Planet planets[2] = {earth, moon};
+	// Universe universe (2, planets, 3);
 
 	Universe universe(3, true);
 
-	//----SETUP----//
+	//---SETUP---//
 	universe.setupSpace(); 
-
-	float G = 10000.0, dist;
-	Vector2f dpos, force;
-
-	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy;
-	double KE, PE;
-
-	unsigned int c=0, C=25; //C is resolution of energy plot
+	
+	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
+	unsigned int count=0, C=25; //C is resolution of energy plot
 	
 	while(universe.space.isOpen()) {
 
@@ -206,7 +200,7 @@ int main() {
 			}
 		}
 
-		//----DISPLAY CYCLE & CALCULATIONS----//
+		//---DISPLAY CYCLE---//
 
 		//clear screen & draw shapes
 		universe.show();
@@ -214,23 +208,21 @@ int main() {
 		//simulate next time step
 		universe.simulate();
 
-		if(c==C) {
-			c-=C;
+		if(count==C) {
+			count-=C;
 			PotentialEnergy.push_back(universe.getPE());
 			KineticEnergy.push_back(universe.getKE());
 			TotalEnergy.push_back(universe.getTE());
-		}else c++;
+		}else count++;
 	}
 
 	std::cout << "Simulation Ended! Plotting energies" << std::endl;
 
-	{ 
-		using namespace matplot;
-		plot(PotentialEnergy, "--xr");
-		hold(on);
-		plot(KineticEnergy, "--xgs");
-		plot(TotalEnergy, "--:ks");
-		show();
-	}
+	{ using namespace matplot;
+	plot(PotentialEnergy, "--xr");
+	hold(on);
+	plot(KineticEnergy, "--xgs");
+	plot(TotalEnergy, "--:ks");
+	show(); }
 
 }
