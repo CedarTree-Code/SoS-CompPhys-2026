@@ -16,12 +16,20 @@ FetchContent_Declare(matplotplusplus
     GIT_REPOSITORY https://github.com/alandefreitas/matplotplusplus
     GIT_TAG origin/master)
 FetchContent_GetProperties(matplotplusplus)
+
 if(NOT matplotplusplus_POPULATED)
     FetchContent_Populate(matplotplusplus)
     add_subdirectory(${matplotplusplus_SOURCE_DIR} ${matplotplusplus_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-add_executable(main src/main.cpp)
+add_executable(main 
+    src/main.cpp
+    src/myrandom.cpp
+    src/planet.cpp
+    src/universe.cpp
+)
+
+target_include_directories(main PRIVATE src)
 target_compile_features(main PRIVATE cxx_std_23)
 target_link_libraries(main PRIVATE SFML::Graphics)
 target_link_libraries(main PRIVATE matplot)

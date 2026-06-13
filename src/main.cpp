@@ -1,180 +1,14 @@
-#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cmath>
-#include <random>
 #include <matplot/matplot.h>
-using namespace sf;
 
-std::random_device rd;
-std::mt19937 gen(rd());
-
-#define H_SIZE 1600
-#define V_SIZE 900
-#define WINDOW_SIZE {H_SIZE, V_SIZE}
-
-#define MAX_NUDGE 2.5
-#define FORCE_MAX 600000.f
-
-const float dt = 1./144; // ~ 1./fps --- global variable
-
-float fRandom(float min, float max) {
-    std::uniform_real_distribution<float> distribution(min, max);
-    return distribution(gen);
-}
-
-float iRandom(int min, int max) {
-    std::uniform_int_distribution<> distribution(min, max);
-    return distribution(gen);
-}
-
-struct Planet {
-
-	Vector2f pos, prevpos, vel, acc; 
-	float size, mass;
-	Color colour;
-	CircleShape shape;
-
-	Planet() {
-		//Random planet
-		pos.x = fRandom(0, H_SIZE);
-		pos.y = fRandom(0, V_SIZE);
-		prevpos.x = pos.x + fRandom(-MAX_NUDGE, MAX_NUDGE);
-		prevpos.y = pos.y + fRandom(-MAX_NUDGE, MAX_NUDGE);
-		acc.x = acc.y = 0;
-		size = fRandom(1, 150);
-		mass = fRandom(100, 3000); 
-
-		colour = Color(iRandom(0, 255), iRandom(0, 255), iRandom(0, 255)); 
-		shapeSetup();
-	}
-
-	Planet(float PosX, float PosY, float S, Color C, float Mass) {
-		pos.x = PosX; pos.y = PosY; //initial position
-		acc.x = acc.y = 0; //initial acceleration
-		mass = Mass;
-		size = S; colour = C;
-		prevpos = pos;
-		shapeSetup(); //setup Planet shape for display
-	}
-
-
-	void shapeSetup() {
-		shape.setRadius(size);
-		shape.setOrigin({size, size});
-		shape.setFillColor(colour);
-	}
-
-	void updatePosVel() {
-		//Verlet integration//
-		Vector2f temp = pos;
-		pos = 2.f*pos - prevpos + acc*dt*dt; //O(t^4) error
-		vel = (pos - prevpos)/(2*dt); //O(t^2) error
-		prevpos = temp;
-	}
-
-	void initialNudge(float dx, float dy) {
-		prevpos = pos + Vector2f (dx, dy); //basically declaring initial velocity
-	}
-
-};
-
-class Universe {
-
-	int N; //Number of planets 
-	std::vector<Planet> planets; 
-	float G = 10000.0, dist, mindist, PEij;
-	Vector2f dpos, force;
-	double KE, PE;
-
-	public:
-	RenderWindow space;
-
-	Universe() { 
-		N=0;
-	}
-
-	Universe(int n, bool random) { 
-		N=n;
-		if(random == true) {
-			for(int i=0; i<n; i++) 
-			planets.push_back(Planet());
-		}
-	}
-
-	Universe(int m, Planet* list, int n) {
-		N=n;
-		for(int i=0; i<m; i++) 
-			planets.push_back(list[i]);
-		for(int i=0; i<n-m; i++) 
-			planets.push_back(Planet());
-	}
-
-	void setupSpace() { 
-		space = RenderWindow(VideoMode(WINDOW_SIZE), "Basic N-body system"); //Fullscreen support removed
-		space.setFramerateLimit(144);
-	}
-
-	void show() {
-		space.clear(Color::Black); 
-
-		for(int i=0; i<N; i++) {
-			planets.at(i).shape.setPosition({planets.at(i).pos.x, planets.at(i).pos.y});
-			space.draw(planets.at(i).shape); 
-		}
-
-		space.display();
-	}
-
-	void simulate() {
-		//Reset
-		PE = 0, KE = 0;
-		for(int i=0; i<N; i++) {
-			planets.at(i).acc.x = 0;
-			planets.at(i).acc.y = 0;
-		}
-		
-		//Calculate interactions 
-		for(int i=0; i<N; i++) {
-			for(int j=i+1; j<N; j++) {
-				//~~GRAVITY~~//
-				dpos = planets.at(i).pos - planets.at(j).pos;
-				dist = dpos.length();
-				mindist = std::sqrt(G*planets.at(i).mass*planets.at(j).mass/FORCE_MAX);
-				force = ((G*planets.at(i).mass*planets.at(j).mass)/(dist*dist*dist)) * dpos; //F_bar = (Gm1m2/r^3) r_bar
-				if (force.length() > FORCE_MAX) force = FORCE_MAX * force.normalized();
-				
-				PEij = -(G*planets.at(i).mass*planets.at(j).mass)/dist; // PE = -Gm1m2/r
-				if (dist > mindist) PE += PEij;
-				else PE += -2*std::sqrt(G*planets.at(i).mass*planets.at(j).mass*FORCE_MAX) + FORCE_MAX*dist;
-
-				planets.at(i).acc += -force/planets.at(i).mass;
-				planets.at(j).acc += force/planets.at(j).mass;
-			}
-		}
-
-		//Update all planets
-		for(int i=0; i<N; i++) {
-			planets.at(i).updatePosVel();
-			KE += 0.5*planets.at(i).mass*planets.at(i).vel.lengthSquared();
-		}
-	}
-
-	double getKE() {
-		return KE;
-	}
-
-	double getPE() {
-		return PE;
-	}
-
-	double getTE() {
-		return KE+PE;
-	}
-
-};
+#include "universe.h"
 
 int main() {
 	//---INITIALISATION---//
+	RenderWindow space(VideoMode(WINDOW_SIZE), "Basic N-body system", State::Fullscreen); //Fullscreen support removed
+	space.setFramerateLimit(144);
+	RenderWindow& ref = space;
 
 	Planet earth(H_SIZE/2, V_SIZE/2, 100, Color::Blue, 2000);
 	Planet moon(H_SIZE/2 - 400, V_SIZE/2, 30, Color::White, 500);
@@ -188,26 +22,24 @@ int main() {
 	// Universe universe(3, true);
 
 	//---SETUP---//
-	universe.setupSpace(); 
-	
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
 	unsigned int count=0, C=24; //C is resolution of energy plot
 	
-	while(universe.space.isOpen()) {
+	while(space.isOpen()) {
 
-		while(const std::optional event = universe.space.pollEvent()) {
+		while(const std::optional event = space.pollEvent()) {
 			if(event->is<Event::Closed>()) 
-				universe.space.close();
+				space.close();
 			else if(const auto* keyPressed = event->getIf<Event::KeyPressed>()) {
 				if(keyPressed->scancode == Keyboard::Scancode::Escape) 
-					universe.space.close();
+					space.close();
 			}
 		}
 
 		//---DISPLAY CYCLE---//
 
 		//clear screen & draw shapes
-		universe.show();
+		universe.show(ref);
 
 		//simulate next time step
 		universe.simulate();
