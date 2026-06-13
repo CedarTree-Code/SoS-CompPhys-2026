@@ -41,7 +41,7 @@ struct Planet {
 		prevpos.x = pos.x + fRandom(-MAX_NUDGE, MAX_NUDGE);
 		prevpos.y = pos.y + fRandom(-MAX_NUDGE, MAX_NUDGE);
 		acc.x = acc.y = 0;
-		size = fRandom(10, 150);
+		size = fRandom(1, 150);
 		mass = fRandom(100, 3000); 
 
 		colour = Color(iRandom(0, 255), iRandom(0, 255), iRandom(0, 255)); 
@@ -82,7 +82,7 @@ class Universe {
 
 	int N; //Number of planets 
 	std::vector<Planet> planets; 
-	float G = 10000.0, dist;
+	float G = 10000.0, dist, mindist, PEij;
 	Vector2f dpos, force;
 	double KE, PE;
 
@@ -139,10 +139,14 @@ class Universe {
 				//~~GRAVITY~~//
 				dpos = planets.at(i).pos - planets.at(j).pos;
 				dist = dpos.length();
+				mindist = std::sqrt(G*planets.at(i).mass*planets.at(j).mass/FORCE_MAX);
 				force = ((G*planets.at(i).mass*planets.at(j).mass)/(dist*dist*dist)) * dpos; //F_bar = (Gm1m2/r^3) r_bar
 				if (force.length() > FORCE_MAX) force = FORCE_MAX * force.normalized();
-				PE += -(G*planets.at(i).mass*planets.at(j).mass)/dist; // PE = -Gm1m2/r
 				
+				PEij = -(G*planets.at(i).mass*planets.at(j).mass)/dist; // PE = -Gm1m2/r
+				if (dist > mindist) PE += PEij;
+				else PE += -2*std::sqrt(G*planets.at(i).mass*planets.at(j).mass*FORCE_MAX) + FORCE_MAX*dist;
+
 				planets.at(i).acc += -force/planets.at(i).mass;
 				planets.at(j).acc += force/planets.at(j).mass;
 			}
@@ -172,22 +176,22 @@ class Universe {
 int main() {
 	//---INITIALISATION---//
 
-	// Planet earth(H_SIZE/2, V_SIZE/2, 100, Color::Blue, 2000);
-	// Planet moon(H_SIZE/2 - 400, V_SIZE/2, 30, Color::White, 250);
-	// // Planet rock(H_SIZE/2 - 60, V_SIZE/2 - 200, 10, Color::Cyan, 100);
-	// earth.initialNudge(0, 0.25);
-	// moon.initialNudge(0, -2);
-	// // rock.initialNudge(5, 0);
-	// Planet planets[2] = {earth, moon};
-	// Universe universe (2, planets, 3);
+	Planet earth(H_SIZE/2, V_SIZE/2, 100, Color::Blue, 2000);
+	Planet moon(H_SIZE/2 - 400, V_SIZE/2, 30, Color::White, 500);
+	// Planet rock(H_SIZE/2 - 60, V_SIZE/2 - 200, 10, Color::Cyan, 100);
+	earth.initialNudge(0, 0.25);
+	moon.initialNudge(0, -1);
+	// rock.initialNudge(5, 0);
+	Planet planets[2] = {earth, moon};
+	Universe universe (2, planets, 3);
 
-	Universe universe(3, true);
+	// Universe universe(3, true);
 
 	//---SETUP---//
 	universe.setupSpace(); 
 	
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
-	unsigned int count=0, C=25; //C is resolution of energy plot
+	unsigned int count=0, C=24; //C is resolution of energy plot
 	
 	while(universe.space.isOpen()) {
 
