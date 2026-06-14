@@ -7,7 +7,7 @@
 int main() {
 	
 	//---INITIALISATION---//
-	RenderWindow space(VideoMode(WINDOW_SIZE), "Basic N-body system", State::Fullscreen); //Fullscreen support removed
+	RenderWindow space(VideoMode(WINDOW_SIZE), "Basic N-body system", SCREEN_STATE); //Fullscreen support removed
 	space.setFramerateLimit(144);
 	RenderWindow& ref = space;
 
@@ -40,6 +40,7 @@ int main() {
 		//---DISPLAY CYCLE---//
 
 		//clear screen & draw shapes
+		space.clear(Color::Black);
 		universe.show(ref);
 
 		//simulate next time step

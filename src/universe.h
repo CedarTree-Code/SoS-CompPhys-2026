@@ -21,6 +21,7 @@ class Universe {
 	void show(RenderWindow& space); //Rendering
 	void simulate(); //Computations
 
+	std::vector<Vector2f> getPlanetPositions();
 	double getKE();
 	double getPE();
 	double getTE();

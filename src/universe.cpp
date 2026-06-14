@@ -31,7 +31,7 @@ void Universe::addPlanets(int m, Planet* list) {
 }
 
 void Universe::show(RenderWindow& space) {
-    space.clear(Color::Black); 
+    // space.clear(Color::Black); 
 
     for(int i=0; i<N; i++) {
         planets.at(i).shape.setPosition({planets.at(i).pos.x, planets.at(i).pos.y});
@@ -73,6 +73,12 @@ void Universe::simulate() {
         planets.at(i).updatePosVel();
         KE += 0.5*planets.at(i).mass*planets.at(i).vel.lengthSquared();
     }
+}
+
+std::vector<Vector2f> Universe::getPlanetPositions() {
+    std::vector<Vector2f> out;
+    for(Planet p : planets) out.push_back(p.pos);
+    return out;
 }
 
 double Universe::getKE() {
