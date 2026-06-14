@@ -31,7 +31,7 @@ void Node::draw(RenderWindow& window) {
     RectangleShape box({hsize, vsize});
     box.setOrigin({hsize/2, vsize/2});
     box.setFillColor(Color::Transparent);
-    box.setOutlineThickness(-2.f);
+    box.setOutlineThickness(-BOX_THICKNESS);
 
     box.setPosition({midpoint.x, midpoint.y});
     window.draw(box);
