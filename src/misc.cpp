@@ -1,5 +1,4 @@
-#include "myrandom.h"
-#include <random>
+#include "misc.h"
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -12,4 +11,8 @@ float fRandom(float min, float max) {
 float iRandom(int min, int max) {
     std::uniform_int_distribution<> distribution(min, max);
     return distribution(gen);
+}
+
+float deNormalize(float l) {
+    return l*N_SIZE;
 }

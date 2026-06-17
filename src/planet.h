@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "myrandom.h"
+#include "misc.h"
 #include "const.h"
 
 using namespace sf;

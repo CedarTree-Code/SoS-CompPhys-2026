@@ -11,16 +11,16 @@ int main() {
 	space.setFramerateLimit(144);
 	RenderWindow& ref = space;
 
-	// Planet earth(H_SIZE/2, V_SIZE/2, 100, Color::Blue, 2000);
-	// Planet moon(H_SIZE/2 - 400, V_SIZE/2, 30, Color::White, 500);
+	// Planet earth(.6f, .3f, 50, Color::Blue, 2000);
+	// Planet moon(.2f, .3f, 10, Color::White, 500);
 	// // Planet rock(H_SIZE/2 - 60, V_SIZE/2 - 200, 10, Color::Cyan, 100);
-	// earth.initialNudge(0, 0.25);
-	// moon.initialNudge(0, -1);
+	// earth.initialNudge(0, 0.00125);
+	// moon.initialNudge(0, -.005);
 	// // rock.initialNudge(5, 0);
 	// Planet planets[2] = {earth, moon};
-	// Universe universe (2, planets, 3);
+	// Universe universe (2, planets, 2);
 
-	Universe universe(7, true);
+	Universe universe(500, true);
 
 	//---SETUP---//
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
@@ -39,12 +39,14 @@ int main() {
 
 		//---DISPLAY CYCLE---//
 
-		//clear screen & draw shapes
+		//clear screen
 		space.clear(Color::Black);
+
+        //draw shapes
 		universe.show(ref);
 
 		//simulate next time step
-		universe.simulate();
+		universe.simulate(SIMULATION_TYPE);
 
 		if(count==C) {
 			count-=C;

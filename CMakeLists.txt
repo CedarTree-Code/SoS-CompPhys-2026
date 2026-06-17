@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(CMakeSFML&Matplot++Project LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -24,7 +25,7 @@ endif()
 
 add_executable(main 
     src/main.cpp
-    src/myrandom.cpp
+    src/misc.cpp
     src/planet.cpp
     src/universe.cpp
     src/quadtree.cpp
@@ -32,7 +33,7 @@ add_executable(main
 
 add_executable(treetest
     src/treetest.cpp
-    src/myrandom.cpp
+    src/misc.cpp
     src/planet.cpp
     src/universe.cpp
     src/quadtree.cpp

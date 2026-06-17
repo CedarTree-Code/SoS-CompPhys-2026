@@ -1,44 +1,178 @@
 #include "quadtree.h"
 
-Node::Node(float s, Vector2f midpt, int n, int l) {
-    size = s; lvl = l; 
-    midpoint = midpt;
-    indices.reserve(n);
-    for(int i=0; i<n; i++) 
-        indices.push_back(i);
+Node::Node() {
+    size = 1; 
+    midpoint = Vector2f(.5f, .5f*((float)std::min(H_SIZE, V_SIZE)/N_SIZE));
     has_subnodes = false;
 }
 
-void Node::make(std::vector<Vector2f> things) {
+Node::Node(int n) {
+    size = 1; 
+    midpoint = Vector2f(.5f, .5f*((float)std::min(H_SIZE, V_SIZE)/N_SIZE));
+    for(int i=0; i<n; i++) 
+        indices.insert(i);
+    has_subnodes = false;
+}
+
+Node::Node(float s, int n) {
+    size = s; 
+    midpoint = Vector2f(.5f, .5f*((float)std::min(H_SIZE, V_SIZE)/N_SIZE));
+    for(int i=0; i<n; i++) 
+        indices.insert(i);
+    has_subnodes = false;
+}
+
+Node::Node(Vector2f midpt, float s, int n) {
+    size = s; 
+    midpoint = midpt;
+    for(int i=0; i<n; i++) 
+        indices.insert(i);
+    has_subnodes = false;
+}
+
+void Node::resize(int n, std::vector<Planet>& planets) {
+    float newsize, temp, Dx, Dy;
+    for(int i : indices) {
+        Dx = std::abs(midpoint.x - planets.at(i).pos.x);
+        Dy = std::abs(midpoint.y - planets.at(i).pos.y);
+        temp = 2*std::max(Dx, Dy);
+        if(temp > newsize) newsize = temp;
+    }
+    Node(newsize, n);
+}
+
+void Node::calcCOMs(std::vector<Planet>& planets) {
+    float M, Xsum, Ysum;
+    if(has_subnodes){
+        for(int i=0; i<4; i++) {
+            subnode[i]->calcCOMs(planets);
+            M += subnode[i]->COM.z;
+            Xsum += planets.at(i).mass*subnode[i]->COM.x;
+            Ysum += planets.at(i).mass*subnode[i]->COM.y;        
+        }
+    }else{
+        for(int i : indices) {
+            M += planets.at(i).mass;
+            Xsum += planets.at(i).mass*planets.at(i).pos.x;
+            Ysum += planets.at(i).mass*planets.at(i).pos.y;
+        }
+    }
+    COM = Vector3f(Xsum/M, Ysum/M, M);
+}
+
+void Node::splitNode(std::vector<Vector2f>& things) { //points
     has_subnodes = true;
-    subnode[0] = new Node(size/2, Vector2f(midpoint.x - size/4, midpoint.y - size/4), 0, lvl+1);
-    subnode[1] = new Node(size/2, Vector2f(midpoint.x + size/4, midpoint.y - size/4), 0, lvl+1);
-    subnode[2] = new Node(size/2, Vector2f(midpoint.x - size/4, midpoint.y + size/4), 0, lvl+1);
-    subnode[3] = new Node(size/2, Vector2f(midpoint.x + size/4, midpoint.y + size/4), 0, lvl+1);
+    subnode[0] = new Node(Vector2f(midpoint.x - size/4, midpoint.y - size/4), size/2);
+    subnode[1] = new Node(Vector2f(midpoint.x + size/4, midpoint.y - size/4), size/2);
+    subnode[2] = new Node(Vector2f(midpoint.x - size/4, midpoint.y + size/4), size/2);
+    subnode[3] = new Node(Vector2f(midpoint.x + size/4, midpoint.y + size/4), size/2);
 
     for(int i : indices) {
         int k=0;
-        if(things[i].x > midpoint.x) ++k;
-        if(things[i].y > midpoint.y) ++++k; 
-        subnode[k]->indices.push_back(i);
+        if(things.at(i).x > midpoint.x) ++k;
+        if(things.at(i).y > midpoint.y) ++++k; 
+        subnode[k]->indices.insert(i);
     }
 
     for(int i=0; i<4; i++) 
         if (subnode[i]->indices.size() > MAX_PER_NODE_COUNT)
-            subnode[i]->make(things);
+            subnode[i]->splitNode(things);
 }
 
-void Node::draw(RenderWindow& window) {
+void Node::splitNode(std::vector<Planet>& things) { //planets
+    has_subnodes = true;
+    subnode[0] = new Node(Vector2f(midpoint.x - size/4, midpoint.y - size/4), size/2);
+    subnode[1] = new Node(Vector2f(midpoint.x + size/4, midpoint.y - size/4), size/2);
+    subnode[2] = new Node(Vector2f(midpoint.x - size/4, midpoint.y + size/4), size/2);
+    subnode[3] = new Node(Vector2f(midpoint.x + size/4, midpoint.y + size/4), size/2);
 
-    RectangleShape box({size, size});
-    box.setOrigin({size/2, size/2});
+    for(int i : indices) {
+        int k=0;
+        if(things.at(i).pos.x > midpoint.x) ++k;
+        if(things.at(i).pos.y > midpoint.y) ++++k; 
+        subnode[k]->indices.insert(i);
+    }
+
+    for(int i=0; i<4; i++) 
+        if (subnode[i]->indices.size() > MAX_PER_NODE_COUNT)
+            subnode[i]->splitNode(things);
+}
+
+void Node::drawTree(RenderWindow& window) {
+
+    float s = deNormalize(size);
+
+    RectangleShape box({s, s});
+    box.setOrigin({s/2, s/2});
     box.setFillColor(Color::Transparent);
     box.setOutlineThickness(-BOX_THICKNESS);
 
-    box.setPosition({midpoint.x, midpoint.y});
+    box.setPosition({deNormalize(midpoint.x), deNormalize(midpoint.y)});
     window.draw(box);
 
     if(has_subnodes == true)
         for(int i=0; i<4; i++) 
-            subnode[i]->draw(window);
+            subnode[i]->drawTree(window);
+}
+
+std::vector<Vector3f> Node::approx (int b, std::vector<Planet>& planets) {
+    std::vector<Vector3f> out, temp;
+    if(indices.contains(b)) {
+        if(has_subnodes) {
+            for(int i=0; i<4; i++) {
+                temp = subnode[i]->approx(b, planets);
+                out.insert(out.end(), temp.begin(), temp.end());
+            }
+        }else{
+            for(int i : indices) {
+                if(i!=b) out.push_back(Vector3f(planets.at(i).pos.x, planets.at(i).pos.y, planets.at(i).mass));
+            }
+        }
+    }else{
+        temp = check(b, planets);
+        out.insert(out.end(), temp.begin(), temp.end());
+    }
+    return out;
+}
+
+std::vector<Vector3f> Node::check(int b, std::vector<Planet>& planets) {
+    std::vector<Vector3f> out, temp;
+    Vector2f disp = Vector2(COM.x, COM.y) - planets.at(b).pos;
+    float dist = disp.length();
+    if(size/dist > Z) { 
+        out.push_back(COM);
+    }else{
+        if(has_subnodes) {
+            for(int i=0; i<4; i++) {
+                temp = subnode[i]->check(b, planets);
+                out.insert(out.end(), temp.begin(), temp.end());
+            }
+        }else{
+            for(int i : indices) {
+                out.push_back(Vector3f(planets.at(i).pos.x, planets.at(i).pos.y, planets.at(i).mass));
+            }
+        }
+    }
+    return out;
+}
+
+Node::~Node() {
+    while(has_subnodes) {
+        bool a=false;
+        for(int i=0; i<4; i++) if (subnode[i]->has_subnodes) a=true;
+        if (a) {
+            for(int i=0; i<4; i++) {
+                bool b=false;
+                for(int j=0; j<4; j++) 
+                    if(subnode[i]->subnode[j]->has_subnodes) b=true;
+                if (b == false) {
+                    subnode[i]->has_subnodes=false;
+                    for(int j=0; j<4; j++) delete subnode[j];
+                }else subnode[i]->~Node();
+            }
+        }else{
+            has_subnodes = false;
+            for(int i=0; i<4; i++) delete subnode[i];
+        }
+    }
 }

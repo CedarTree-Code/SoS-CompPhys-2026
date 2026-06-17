@@ -2,8 +2,8 @@
 
 Planet::Planet() {
     //Random planet
-    pos.x = fRandom(0, H_SIZE);
-    pos.y = fRandom(0, V_SIZE);
+    pos.x = fRandom(0.f, 1.f);
+    pos.y = fRandom(0.f, 9.f/16);
     prevpos.x = pos.x + fRandom(-MAX_NUDGE, MAX_NUDGE);
     prevpos.y = pos.y + fRandom(-MAX_NUDGE, MAX_NUDGE);
     acc.x = acc.y = 0;

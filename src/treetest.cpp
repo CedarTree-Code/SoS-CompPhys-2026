@@ -6,12 +6,10 @@ int main() {
     window.setFramerateLimit(144);
     RenderWindow& ref = window;
 
-    Universe test(60, true);
-    std::vector<Vector2f> points = test.getPlanetPositions();
+    int N=60;
+    Universe test(N, true);
     
-    Node tree(N_SIZE, Vector2f(H_SIZE/2, V_SIZE/2), points.size());
-    tree.make(points);
-    tree.draw(ref);
+    test.createTree(ref);
     test.show(ref);
 
     while(window.isOpen()) {

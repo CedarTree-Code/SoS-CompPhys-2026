@@ -1,14 +1,15 @@
 #pragma once
 
 #include "planet.h"
+#include "quadtree.h"
 
 using namespace sf;
 
 class Universe {
 	int N; //Number of planets 
 	std::vector<Planet> planets; 
-	//(tree)
-	float G = GRAVITATIONAL_CONST, dist, mindist, PEij;
+	Node qtree;
+	float G = GRAVITATIONAL_CONST, dist, mindist;
 	Vector2f dpos, force;
 	double KE, PE;
 
@@ -20,9 +21,9 @@ class Universe {
     void addPlanet(Planet p); //Adds planet p to the universe
     void addPlanets(int m, Planet* list); //Adds a list of m planets to the universe
 	void show(RenderWindow& space); //Rendering
-	void simulate(); //Computations
-
-	std::vector<Vector2f> getPlanetPositions();
+	void simulate(int simtype); //Computations
+	void createTree(RenderWindow& space);
+	
 	double getKE();
 	double getPE();
 	double getTE();
