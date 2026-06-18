@@ -20,7 +20,7 @@ int main() {
 	// Planet planets[2] = {earth, moon};
 	// Universe universe (2, planets, 2);
 
-	Universe universe(5000, true);
+	Universe universe(500, true);
 
 	//---SETUP---//
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
