@@ -7,6 +7,7 @@
 #define SCREEN_STATE State::Fullscreen
 
 #define SIMULATION_TYPE 2 //1 -> Normal, 2 -> Barnes-Hut
+#define NO_OF_PLANETS 1000 //1-> 20000 barely inches along, 2-> 80000 at Z=0.75 does same
 
 #define GRAVITATIONAL_CONST 1e-5f
 #define MAX_FORCE 1000.f
@@ -19,7 +20,7 @@
 
 #define D_t (float)(1./144)  //~ 1./fps --- global variable
 
-#define MAX_PER_NODE_COUNT (int)6
+#define MAX_PER_NODE_COUNT (int)1
 #define BOX_THICKNESS .75f
-#define Z 0.4
+#define Z 0.6
 

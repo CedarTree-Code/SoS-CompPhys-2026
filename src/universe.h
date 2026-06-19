@@ -8,7 +8,7 @@ using namespace sf;
 class Universe {
 	int N; //Number of planets 
 	std::vector<Planet> planets; 
-	Node qtree;
+	Node qtree; std::vector<Node*> nodepos;
 	float G = GRAVITATIONAL_CONST, dist, mindist;
 	Vector2f dpos, force;
 	double KE, PE;
@@ -23,6 +23,7 @@ class Universe {
 	void show(RenderWindow& space); //Rendering
 	void simulate(int simtype); //Computations
 	void createTree(RenderWindow& space);
+	void clearTree();
 	
 	double getKE();
 	double getPE();

@@ -8,7 +8,7 @@
 using namespace sf;
 
 class Node {
-    std::set<int> indices;
+    std::vector<int> indices;
     float size;
     Vector2f midpoint;
     Vector3f COM; //xpos, ypos, totalmass
@@ -19,15 +19,14 @@ class Node {
     Node();
     Node(int n);
     Node(float s, int n);
-    Node(Vector2f midpt, float s, int n = 0);
+    Node(Vector2f midpt, float s);
 
-    void resize(int n, std::vector<Planet>& planets);
+    void resize(std::vector<Planet>& planets);
     void calcCOMs(std::vector<Planet>& planets);
-    void splitNode(std::vector<Vector2f>& points);
-    void splitNode(std::vector<Planet>& planets);
+    // void splitNode(std::vector<Vector2f>& points);
+    std::vector<Node*> splitNode(std::vector<Planet>& planets);
     void drawTree(RenderWindow& window);
     void clean();
 
-    std::vector<Vector3f> approx (int b, std::vector<Planet>& planets);
     std::vector<Vector3f> check(int b, std::vector<Planet>& planets);
 };

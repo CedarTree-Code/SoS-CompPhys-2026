@@ -20,11 +20,11 @@ int main() {
 	// Planet planets[2] = {earth, moon};
 	// Universe universe (2, planets, 2);
 
-	Universe universe(500, true);
+	Universe universe(NO_OF_PLANETS, true);
 
 	//---SETUP---//
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
-	unsigned int count=0, C=6; //C is resolution of energy plot
+	unsigned int count=0, C=12; //C is resolution of energy plot
 	
 	while(space.isOpen()) {
 
