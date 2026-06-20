@@ -5,7 +5,7 @@
 #include "universe.h"
 
 int main() {
-	
+	Timer timer("main");
 	//---INITIALISATION---//
 	RenderWindow space(VideoMode(WINDOW_SIZE), "Basic N-body system", SCREEN_STATE); //Fullscreen support removed
 	space.setFramerateLimit(144);
@@ -24,7 +24,7 @@ int main() {
 
 	//---SETUP---//
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
-	unsigned int count=0, C=12; //C is resolution of energy plot
+	unsigned int count=0, C=12, i=0; //C is resolution of energy plot
 	
 	while(space.isOpen()) {
 
@@ -37,6 +37,30 @@ int main() {
 			}
 		}
 
+		#ifdef TEST_ITER
+		for(; i<TEST_ITER; i++) {
+			//---DISPLAY CYCLE---//
+
+			//clear screen
+			space.clear(Color::Black);
+
+			//draw shapes
+			universe.show(ref);
+
+			//simulate next time step
+			universe.simulate(SIMULATION_TYPE);
+
+			if(count==C) {
+				count-=C;
+				PotentialEnergy.push_back(universe.getPE());
+				KineticEnergy.push_back(universe.getKE());
+				TotalEnergy.push_back(universe.getTE());
+			}else count++;
+		}
+
+		space.close();
+
+		#else
 		//---DISPLAY CYCLE---//
 
 		//clear screen
@@ -54,15 +78,18 @@ int main() {
 			KineticEnergy.push_back(universe.getKE());
 			TotalEnergy.push_back(universe.getTE());
 		}else count++;
+		#endif
+
 	}
 
-	std::cout << "Simulation Ended! Plotting energies" << std::endl;
+	std::cout << "Simulation Ended!" << std::endl;
 
-	{ using namespace matplot;
-	plot(PotentialEnergy, "--xr");
-	hold(on);
-	plot(KineticEnergy, "--xgs");
-	plot(TotalEnergy, "--:ks");
-	show(); }
+	// { std::cout << "Plotting Energies..." << std::endl;
+	// using namespace matplot;
+	// plot(PotentialEnergy, "--xr");
+	// hold(on);
+	// plot(KineticEnergy, "--xgs");
+	// plot(TotalEnergy, "--:ks");
+	// show(); }
 
 }

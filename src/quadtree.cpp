@@ -31,6 +31,7 @@ Node::Node(Vector2f midpt, float s) {
 }
 
 void Node::resize(std::vector<Planet>& planets) {
+    //Timer timer("Node::resize()");
     float newsize = 0.01, temp, Dx, Dy;
     for(int i : indices) {
         Dx = std::abs(midpoint.x - planets.at(i).pos.x);
@@ -38,10 +39,11 @@ void Node::resize(std::vector<Planet>& planets) {
         temp = 2*std::max(Dx, Dy);
         if(temp > newsize) newsize = temp;
     }
-    size = newsize;
+    size = newsize; is_root = true;
 }
 
 void Node::calcCOMs(std::vector<Planet>& planets) {
+    //if(is_root) Timer timer("Node::calcCOMs()");
     float M=0, Xsum=0, Ysum=0;
     if(has_subnodes){
         for(int i=0; i<4; i++) {
@@ -81,6 +83,7 @@ void Node::calcCOMs(std::vector<Planet>& planets) {
 // }
 
 std::vector<Node*> Node::splitNode(std::vector<Planet>& things) { //planets
+    //if(is_root) Timer timer("Node::splitNode()");
     has_subnodes = true;
     subnode[0] = new Node(Vector2f(midpoint.x - size/4, midpoint.y - size/4), size/2);
     subnode[1] = new Node(Vector2f(midpoint.x + size/4, midpoint.y - size/4), size/2);

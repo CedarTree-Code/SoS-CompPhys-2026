@@ -48,7 +48,7 @@ void Universe::show(RenderWindow& space) {
 }
 
 void Universe::simulate(int simtype) {
-    
+    Timer timer("Universe::simulate()");
     //Reset
     PE = 0, KE = 0;
     for(int i=0; i<N; i++) {
@@ -81,6 +81,8 @@ void Universe::simulate(int simtype) {
         nodepos = qtree.splitNode(planets);
         qtree.calcCOMs(planets);
 
+        // { 
+        // Timer timer("Force Calcs");
         for(int i=0; i<N; i++) {
             //compute forces Vector3f(xpos, ypos, mass)
             std::vector<Vector3f> approx = qtree.check(i, planets);
@@ -99,8 +101,9 @@ void Universe::simulate(int simtype) {
                 planets.at(i).acc += -force/planets.at(i).mass;
             }
 
-        }
+        // }
         PE/=2; //double calc-ed PE of system (probably cant calc PE like this here anyway)
+        }
 
         //cleanup
         clearTree();
@@ -121,6 +124,7 @@ void Universe::createTree(RenderWindow& space) {
 }
 
 void Universe::clearTree() {
+    Timer timer("Universe::clearTree()");
     for(Node* s : nodepos) delete s;
     nodepos.clear();
 }

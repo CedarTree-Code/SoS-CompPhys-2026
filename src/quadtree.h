@@ -12,7 +12,7 @@ class Node {
     float size;
     Vector2f midpoint;
     Vector3f COM; //xpos, ypos, totalmass
-    bool has_subnodes;
+    bool has_subnodes, is_root = false;
     Node* subnode[4];
 
     public:
