@@ -6,9 +6,11 @@ Universe class to update all objects using one function, instead of going one fu
 
 QuadTree implementation
 
-Barnes-Hut Algorithm
+Barnes-Hut Algorithms
 
 # Resources/code for Cmake SFML and Matplot++ 
+
 https://github.com/SFML/cmake-sfml-project
+
 
 https://github.com/alandefreitas/matplotplusplus
