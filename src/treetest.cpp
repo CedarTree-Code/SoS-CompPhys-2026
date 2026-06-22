@@ -6,7 +6,7 @@ int main() {
   window.setFramerateLimit(144);
   RenderWindow& ref = window;
 
-  int N=60;
+  int N=20;
   Universe test(N, true);
 
   test.createTree(ref);
@@ -23,5 +23,5 @@ int main() {
     }
   }
 
-  randomSeedGen(20);
+  //randomSeedGen(20);
 }

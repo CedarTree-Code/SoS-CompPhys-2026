@@ -10,7 +10,7 @@ Universe::Universe(int n, bool random) {
     if(random == true) 
         for(int i=0; i<n; i++) 
             planets.push_back(Planet());
-    qtree = Node(n);
+    qtree = Node(N);
 }
 
 Universe::Universe(int m, Planet* list, int n) {
@@ -19,7 +19,13 @@ Universe::Universe(int m, Planet* list, int n) {
         planets.push_back(list[i]);
     for(int i=0; i<n-m; i++) 
         planets.push_back(Planet());
-    qtree = Node(n);
+    qtree = Node(N);
+}
+
+Universe::Universe(const Universe& u) {
+    N = u.N;
+    planets = u.planets;
+    qtree = Node(N);
 }
 
 void Universe::addPlanet(Planet p) {
@@ -47,8 +53,8 @@ void Universe::show(RenderWindow& space) {
     space.display();
 }
 
-void Universe::simulate(int simtype) {
-    Timer timer("Universe::simulate()");
+void Universe::simulate(int simtype, float Z) {
+    //Timer timer("Universe::simulate()");
     //Reset
     PE = 0, KE = 0;
     for(int i=0; i<N; i++) {
@@ -85,7 +91,7 @@ void Universe::simulate(int simtype) {
         // Timer timer("Force Calcs");
         for(int i=0; i<N; i++) {
             //compute forces Vector3f(xpos, ypos, mass)
-            std::vector<Vector3f> approx = qtree.check(i, planets);
+            std::vector<Vector3f> approx = qtree.check(i, planets, Z);
 
             //Calculate interactions
             for(Vector3f a : approx) {
@@ -124,7 +130,7 @@ void Universe::createTree(RenderWindow& space) {
 }
 
 void Universe::clearTree() {
-    Timer timer("Universe::clearTree()");
+    //Timer timer("Universe::clearTree()");
     for(Node* s : nodepos) delete s;
     nodepos.clear();
 }

@@ -5,7 +5,6 @@
 #include "universe.h"
 
 int main() {
-	Timer timer("main");
 	//---INITIALISATION---//
 	RenderWindow space(VideoMode(WINDOW_SIZE), "Basic N-body system", SCREEN_STATE); //Fullscreen support removed
 	space.setFramerateLimit(144);
@@ -21,7 +20,10 @@ int main() {
 	// Universe universe (2, planets, 2);
 
 	Universe universe(NO_OF_PLANETS, true);
-
+	#ifdef TEST_ITER
+	Universe u1 = universe, u2 = universe, u3 = universe;
+	#endif
+	
 	//---SETUP---//
 	std::vector<double> KineticEnergy, PotentialEnergy, TotalEnergy; //for plotting
 	unsigned int count=0, C=12, i=0; //C is resolution of energy plot
@@ -38,7 +40,9 @@ int main() {
 		}
 
 		#ifdef TEST_ITER
-		for(; i<TEST_ITER; i++) {
+
+		{ Timer timer("the Normal algorithm"); //simtype 1
+		for(; i<TEST_ITER; i++) { 
 			//---DISPLAY CYCLE---//
 
 			//clear screen
@@ -48,7 +52,7 @@ int main() {
 			universe.show(ref);
 
 			//simulate next time step
-			universe.simulate(SIMULATION_TYPE);
+			universe.simulate(1);
 
 			if(count==C) {
 				count-=C;
@@ -56,7 +60,70 @@ int main() {
 				KineticEnergy.push_back(universe.getKE());
 				TotalEnergy.push_back(universe.getTE());
 			}else count++;
-		}
+		} }
+
+		{ Timer timer("the Barnes-Hut alg (Z = 0.1)"); //simtype 2 --- Z = 0.1
+		for(; i<2*TEST_ITER; i++) { 
+			//---DISPLAY CYCLE---//
+
+			//clear screen
+			space.clear(Color::Black);
+
+			//draw shapes
+			u1.show(ref);
+
+			//simulate next time step
+			u1.simulate(2, Z1);
+
+			if(count==C) {
+				count-=C;
+				PotentialEnergy.push_back(universe.getPE());
+				KineticEnergy.push_back(universe.getKE());
+				TotalEnergy.push_back(universe.getTE());
+			}else count++;
+		} }
+
+		{ Timer timer("the Barnes-Hut alg (Z = 0.5)");//simtype 2 --- Z = 0.5
+		for(; i<3*TEST_ITER; i++) { 
+			//---DISPLAY CYCLE---//
+
+			//clear screen
+			space.clear(Color::Black);
+
+			//draw shapes
+			u2.show(ref);
+
+			//simulate next time step
+			u2.simulate(2, Z2);
+
+			if(count==C) {
+				count-=C;
+				PotentialEnergy.push_back(universe.getPE());
+				KineticEnergy.push_back(universe.getKE());
+				TotalEnergy.push_back(universe.getTE());
+			}else count++;
+		} }
+
+		{ Timer timer("the Barnes-Hut alg (Z = 0.7)"); //simtype 2 --- Z = 0.7
+		for(; i<4*TEST_ITER; i++) { 
+			//---DISPLAY CYCLE---//
+
+			//clear screen
+			space.clear(Color::Black);
+
+			//draw shapes
+			u3.show(ref);
+
+			//simulate next time step
+			u3.simulate(2, Z3);
+
+			if(count==C) {
+				count-=C;
+				PotentialEnergy.push_back(universe.getPE());
+				KineticEnergy.push_back(universe.getKE());
+				TotalEnergy.push_back(universe.getTE());
+			}else count++;
+		} }
 
 		space.close();
 
@@ -70,7 +137,7 @@ int main() {
 		universe.show(ref);
 
 		//simulate next time step
-		universe.simulate(SIMULATION_TYPE);
+		universe.simulate(SIMULATION_TYPE, Z);
 
 		if(count==C) {
 			count-=C;
@@ -78,6 +145,7 @@ int main() {
 			KineticEnergy.push_back(universe.getKE());
 			TotalEnergy.push_back(universe.getTE());
 		}else count++;
+
 		#endif
 
 	}

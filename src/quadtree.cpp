@@ -126,7 +126,7 @@ void Node::drawTree(RenderWindow& window) {
             subnode[i]->drawTree(window);
 }
 
-std::vector<Vector3f> Node::check(int b, std::vector<Planet>& planets) {
+std::vector<Vector3f> Node::check(int b, std::vector<Planet>& planets, float Z) {
     std::vector<Vector3f> out, temp;
     Vector2f disp = Vector2(COM.x, COM.y) - planets.at(b).pos;
     float dist = disp.length();
@@ -135,7 +135,7 @@ std::vector<Vector3f> Node::check(int b, std::vector<Planet>& planets) {
     }else{
         if(has_subnodes) {
             for(int i=0; i<4; i++) {
-                temp = subnode[i]->check(b, planets);
+                temp = subnode[i]->check(b, planets, Z);
                 out.insert(out.end(), temp.begin(), temp.end());
             }
         }else{

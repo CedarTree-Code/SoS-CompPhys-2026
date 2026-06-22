@@ -1,7 +1,7 @@
 #include "misc.h"
 
-//std::random_device rd;
-std::mt19937 gen(SEED);
+std::random_device rd;
+std::mt19937 gen(rd());
 
 float fRandom(float min, float max) {
     std::uniform_real_distribution<float> distribution(min, max);
